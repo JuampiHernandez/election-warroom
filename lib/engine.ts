@@ -1301,8 +1301,8 @@ async function priceHistory(c: Ctx, tokenId: string): Promise<{ t: number; p: nu
     const json: any = await res.json();
     recordCall(c, "polymarket", "clob/prices-history", true, performance.now() - t0, 0, "direct");
     return json.history ?? [];
-  } catch (e: any) {
-    recordCall(c, "polymarket", "clob/prices-history", false, performance.now() - t0, 0, "direct", String(e?.cause?.code ?? e?.message ?? e));
+  } catch {
+    // Some networks block polymarket.com; the Firecrawl fetch below is the recorded call.
     const body = await firecrawl<any>(c, "POST", "/v2/scrape", "scrape/polymarket-history", {
       body: { url, formats: ["rawHtml"], maxAge: 5 * 60_000, origin: config.origin },
       bucket: "scrape",
