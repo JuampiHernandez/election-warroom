@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Election War Room · Firecrawl Alexandria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script>
+    try {
+      const saved = localStorage.getItem("warroom:theme:v1");
+      const theme = saved || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+      document.documentElement.dataset.theme = theme;
+    } catch {}
+  </script>
+</head>
+<body>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="flame">▲</span>
+      <div>
+        <div class="brand-title">ELECTION WAR ROOM</div>
+        <div class="brand-sub">US GENERAL · <span id="electionDate">—</span> · data via Firecrawl Alexandria</div>
+      </div>
+    </div>
+    <div class="status-cluster">
+      <div class="live-pill" id="livePill"><span class="dot"></span><span id="liveText">CONNECTING</span></div>
+      <div class="clock"><span class="clock-label">ET</span><span id="clockET">--:--:--</span></div>
+      <div class="clock"><span class="clock-label">UTC</span><span id="clockUTC">--:--:--</span></div>
+      <div class="clock"><span class="clock-label">NEXT POLL</span><span id="nextPoll">--</span></div>
+      <div class="clock"><span class="clock-label">CREDITS</span><span id="credits">0</span></div>
+      <div class="clock spark-wrap" title="Alexandria and search calls per 10 seconds, last 5 minutes"><span class="clock-label">CALLS/MIN <b id="cpm">0</b></span><canvas id="spark" width="120" height="22"></canvas></div>
+      <button class="btn" id="themeBtn" title="Switch light or dark mode">☀ LIGHT</button>
+      <button class="btn" id="soundBtn" title="Alert sound">🔇 SOUND</button>
+      <button class="btn" id="notifyBtn" title="Desktop notifications">NOTIFY</button>
+    </div>
+    <div class="pollbar" title="Time until the next results check"><div id="pollbarFill"></div></div>
+  </header>
+
+  <div class="pulse-strip" id="pulseStrip" aria-hidden="true"><span class="pulse-label">LIVE CALLS</span></div>
+
+  <div class="ticker" aria-live="off"><div class="ticker-label">ALERTS</div><div class="ticker-track"><div class="ticker-inner" id="ticker"></div></div></div>
+
+  <main class="grid">
+    <section class="panel markets-panel">
+      <div class="panel-head"><h2>Prediction markets <span class="count" id="mktCount">0</span></h2><span class="muted" id="mktMeta">Polymarket via Alexandria</span></div>
+      <div class="markets" id="markets"><div class="empty">Loading Polymarket odds…</div></div>
+    </section>
+
+    <section class="panel national-panel">
+      <div class="panel-head"><h2>National board <span class="count" id="natCount">0</span></h2><span class="muted" id="natMeta">Every Senate race · NBC News results pages, scraped by Firecrawl</span></div>
+      <div class="nat-house" id="natHouse"></div>
+      <div class="nat-senate" id="natSenate"><div class="empty">Scraping the national Senate board…</div></div>
+    </section>
+
+    <section class="panel map-panel">
+      <div class="panel-head"><h2>Situation map</h2><span class="muted" id="mapSummary"></span></div>
+      <div class="closes" id="closes"></div>
+      <div class="usmap" id="usmap"></div>
+      <div class="legend">
+        <span><i class="lg live"></i>Live returns</span>
+        <span><i class="lg armed"></i>Feed armed</span>
+        <span><i class="lg err"></i>Feed error</span>
+        <span><i class="lg none"></i>No Alexandria feed</span>
+        <span><i class="lg closed"></i>Polls closed</span>
+        <span><i class="lg-dot"></i>Senate race</span>
+      </div>
+      <div class="feeds" id="feeds"></div>
+    </section>
+
+    <section class="panel alerts-panel">
+      <div class="panel-head">
+        <h2>Alert stream <span class="count" id="alertCount">0</span></h2>
+        <div class="seg" id="alertFilter">
+          <button data-sev="all" class="on">ALL</button>
+          <button data-sev="critical">CRIT</button>
+          <button data-sev="high">HIGH</button>
+          <button data-sev="medium">MED</button>
+          <button data-sev="info">INFO</button>
+        </div>
+      </div>
+      <ol class="alerts" id="alerts"></ol>
+    </section>
+
+    <section class="panel news-panel">
+      <div class="panel-head">
+        <h2>Newswire <span class="count" id="newsCount">0</span></h2>
+        <div class="seg" id="newsFilter">
+          <button data-via="all" class="on">ALL</button>
+          <button data-via="live">LIVE BLOGS <i id="nvLive">0</i></button>
+          <button data-via="monitor">MONITORS <i id="nvMon">0</i></button>
+          <button data-via="search">SEARCH <i id="nvSearch">0</i></button>
+        </div>
+      </div>
+      <div class="news-rate muted" id="newsRate"></div>
+      <ol class="news" id="news"></ol>
+    </section>
+
+    <section class="panel sources-panel">
+      <div class="panel-head"><h2>Watched sources <span class="count" id="srcCount">0</span></h2><span class="muted" id="srcMeta">Firecrawl Monitor every 5 min · Scrape for posts · Search for discovery</span></div>
+      <div class="monitors" id="monitors"></div>
+      <div class="sources" id="sources"></div>
+    </section>
+
+    <section class="panel races-panel">
+      <div class="panel-head">
+        <h2>Race boards <span class="count" id="raceCount">0</span></h2>
+        <div class="controls">
+          <div class="seg" id="officeFilter">
+            <button data-office="all" class="on">ALL</button>
+            <button data-office="senate">SENATE</button>
+            <button data-office="house">HOUSE</button>
+            <button data-office="governor">GOV</button>
+            <button data-office="statewide">STATEWIDE</button>
+            <button data-office="measure">MEASURES</button>
+          </div>
+          <select id="stateFilter"><option value="all">All states</option></select>
+          <select id="sortBy">
+            <option value="office">Sort: office</option>
+            <option value="updated">Sort: last update</option>
+            <option value="margin">Sort: closest margin</option>
+            <option value="reporting">Sort: % reporting</option>
+          </select>
+          <input id="search" placeholder="Search candidate or race…" />
+        </div>
+      </div>
+      <div class="races" id="races"></div>
+    </section>
+
+    <section class="panel money-panel">
+      <div class="panel-head"><h2>Money</h2><span class="muted">FEC via Alexandria</span></div>
+      <div class="tabs" id="moneyTabs">
+        <button data-tab="campaign" class="on">CAMPAIGN TOTALS</button>
+        <button data-tab="outside">OUTSIDE SPENDING</button>
+      </div>
+      <div id="moneyCampaign" class="money-body"></div>
+      <div id="moneyOutside" class="money-body hidden"></div>
+    </section>
+
+    <section class="panel incumbents-panel">
+      <div class="panel-head"><h2>Incumbent voting records</h2><span class="muted">House Clerk roll calls via Alexandria</span></div>
+      <div class="incumbents" id="incumbents"></div>
+    </section>
+
+    <section class="panel health-panel">
+      <div class="panel-head"><h2>Provider telemetry</h2><span class="muted">every Alexandria call, live</span></div>
+      <div class="health" id="health"></div>
+      <ol class="calllog" id="calllog"></ol>
+    </section>
+  </main>
+
+  <dialog id="contestModal">
+    <div class="modal-head">
+      <div><div class="modal-title" id="modalTitle">—</div><div class="muted" id="modalSub"></div></div>
+      <button class="btn" id="modalClose">CLOSE ✕</button>
+    </div>
+    <div id="modalBody" class="modal-body"></div>
+  </dialog>
+
+  <footer class="foot">
+    Results: Clarity ENR (unofficial until certified) and NBC News results pages · Money: FEC · Votes: Clerk of the U.S. House · Odds: Polymarket · News: Firecrawl Search, Scrape and Monitor.
+    All provider data via <a href="https://www.firecrawl.dev/alexandria/categories/public-records?utm_source=election-warroom&utm_medium=integration" target="_blank" rel="noopener">Firecrawl Alexandria</a>.
+  </footer>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <div class="edge-flash" id="edgeFlash" aria-hidden="true"></div>
+  <div class="boot" id="boot" aria-hidden="true"><div class="boot-box"><div class="boot-title"><span class="flame">▲</span> FIRECRAWL // ELECTION WAR ROOM</div><pre id="bootLog"></pre><div class="boot-skip">click to skip</div></div></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

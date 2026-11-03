@@ -1,0 +1,18 @@
+{
+  "name": "election-warroom",
+  "version": "1.0.0",
+  "description": "Real-time US election night war room built on Firecrawl Alexandria, Search, Scrape and Monitor.",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "bun --watch server.ts",
+    "start": "bun server.ts",
+    "typecheck": "tsc --noEmit",
+    "monitors": "bun scripts/monitors.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.6.0"
+  }
+}
